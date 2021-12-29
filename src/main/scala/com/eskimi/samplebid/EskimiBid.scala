@@ -123,7 +123,7 @@ object EskimiBid extends JacksonSupport {
       .newBuilder()
       .handleNotFound {
         extractUnmatchedPath { p =>
-          complete(NotFound, s"The path you requested [${p}] does not exist.")
+          complete(NotFound, s"The path you requested [$p] does not exist.")
         }
       }
       .handle {
@@ -152,7 +152,7 @@ object EskimiBid extends JacksonSupport {
     val route      = new BidRoutes().route
     val httpserver = Http().newServerAt(host, port).bind(route)
 
-    logger.info(s"Server now online. Please send request to http://${host}:${port}/api/bid\nPress RETURN to stop...")
+    logger.info(s"Server now online. Please send request to http://$host:$port/api/bid\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
     httpserver
       .flatMap(_.unbind())                 // trigger unbinding from the port
