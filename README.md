@@ -75,6 +75,11 @@ For example:
 - targettingsiteids => targetingSiteIds
 - ...
 
+### (11) Added repository trait and implementation (in memory) for campaigns
+
+Classes `Repository` and `InMemoryCampaignsRepo` in package `com.eskimi.repository`.
+
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
