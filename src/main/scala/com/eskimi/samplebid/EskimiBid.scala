@@ -50,12 +50,13 @@ object EskimiBid extends JacksonSupport {
   }
 
   def validateBid(bid: BidRequest)(implicit campaigns: Seq[Campaign]): Option[BidResponse] = {
-    val resolved_responses: ListBuffer[BidResponse] = ListBuffer.empty
+    //TODO replace ListBuffer by immutable data structures
+    val resolvedResponses: ListBuffer[BidResponse] = ListBuffer.empty
 
-    var within_bid_impr: Seq[Impression]            = Seq.empty
-    val considered_bid_impr: ListBuffer[Impression] = ListBuffer.empty
-    val hour_of_day                                 = LocalDateTime.now().getHour
-    val random                                      = new Random()
+    var withinBidImpr: Seq[Impression]            = Seq.empty
+    val consideredBidImpr: ListBuffer[Impression] = ListBuffer.empty
+    val hourOfDay                                 = LocalDateTime.now().getHour
+    val random                                    = new Random()
 
     campaigns
       .withFilter(c =>
@@ -66,36 +67,36 @@ object EskimiBid extends JacksonSupport {
       .withFilter(_.targeting.targetedSiteIds.contains(bid.site.id))
       .withFilter(c =>
         c.targeting.startHourOfDay
-          .map(hour_of_day >= _)
-          .getOrElse(true) && c.targeting.endHourOfDay.map(hour_of_day <= _).getOrElse(true)
+          .map(hourOfDay >= _)
+          .getOrElse(true) && c.targeting.endHourOfDay.map(hourOfDay <= _).getOrElse(true)
       )
       .withFilter(c =>
         bid.imp match {
           case None => false
           case Some(lstimpr) =>
-            within_bid_impr = lstimpr.filter(_.bidFloor.exists(_ <= c.bid))
-            within_bid_impr.nonEmpty
+            withinBidImpr = lstimpr.filter(_.bidFloor.exists(_ <= c.bid))
+            withinBidImpr.nonEmpty
         }
       )
       .foreach { c =>
         val resolved_banners = c.banners.filter(bnf =>
-          within_bid_impr.map { imp =>
+          withinBidImpr.map { imp =>
             val _exists =
               (imp.w.exists(_ >= bnf.width) || (imp.wmax.exists(_ >= bnf.width) && imp.wmin.exists(_ <= bnf.width))) &&
                 (imp.h
                   .exists(_ >= bnf.height) || (imp.hmax.exists(_ >= bnf.height) && imp.hmin.exists(_ <= bnf.height)))
-            if (_exists) considered_bid_impr += imp
+            if (_exists) consideredBidImpr += imp
             _exists
           }.nonEmpty
         )
 
-        if (considered_bid_impr.nonEmpty) {
+        if (consideredBidImpr.nonEmpty) {
           var _rand  = random.nextInt(resolved_banners.size)
           val banner = resolved_banners(_rand)
 
-          _rand = random.nextInt(considered_bid_impr.size)
-          val impr = considered_bid_impr(_rand)
-          resolved_responses += BidResponse(
+          _rand = random.nextInt(consideredBidImpr.size)
+          val impr = consideredBidImpr(_rand)
+          resolvedResponses += BidResponse(
             1.toString,
             bid.id,
             impr.bidFloor.getOrElse(0.0d),
@@ -105,14 +106,14 @@ object EskimiBid extends JacksonSupport {
         }
 
         //clear temp
-        considered_bid_impr.clear
-        within_bid_impr = Seq.empty
+        consideredBidImpr.clear
+        withinBidImpr = Seq.empty
       }
 
-    if (resolved_responses.nonEmpty) {
-      resolved_responses.zipWithIndex.foreach { case (bid, c) => logger.info(s"$c: $bid") }
-      val _rand = random.nextInt(resolved_responses.length)
-      Some(resolved_responses(_rand))
+    if (resolvedResponses.nonEmpty) {
+      resolvedResponses.zipWithIndex.foreach { case (bid, c) => logger.info(s"$c: $bid") }
+      val _rand = random.nextInt(resolvedResponses.length)
+      Some(resolvedResponses(_rand))
     } else {
       None
     }
@@ -140,7 +141,7 @@ object EskimiBid extends JacksonSupport {
     implicit val system: ActorSystem[Nothing]               = ActorSystem(Behaviors.empty, "EskimiBid")
     implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
-    implicit val campaigns: Seq[Campaign] = DataGenerator.samplecampaigns(5, None, 3.0, 5.5, Some(6), None)
+    implicit val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
     campaigns.zipWithIndex.foreach { case (cam, c) => logger.info(s"${c + 1}: $cam") }
 
     // Config of the API

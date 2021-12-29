@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 class BidRoutes extends JacksonSupport {
 
-  private implicit val campaigns: Seq[Campaign] = DataGenerator.samplecampaigns(5, None, 3.0, 5.5, Some(6), None)
+  private implicit val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
   private val logger                            = LoggerFactory.getLogger(this.getClass)
 
   val route: Route = (path("api" / "bid") & post) {
