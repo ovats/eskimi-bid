@@ -67,6 +67,14 @@ private val constantBidrequest = HttpRequest(
 )
 ```
 
+### (10) Improve variable and methods names
+
+For example:
+
+- sites_domains => sitesDomains
+- targettingsiteids => targetingSiteIds
+- ...
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
