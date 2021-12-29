@@ -1,6 +1,6 @@
-package com.eskimi.samplebid
+package com.eskimi.samplebid.dummydata
 
-import com.eskimi.domain.{Banner, BidRequest, Campaign, Device, Geo, Impression, Site, Targeting, User}
+import com.eskimi.domain._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random

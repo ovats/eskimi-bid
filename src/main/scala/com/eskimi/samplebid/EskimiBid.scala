@@ -8,6 +8,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import com.eskimi.config.AppConfig
 import com.eskimi.domain._
+import com.eskimi.repository.InMemoryCampaignsRepo
+import com.eskimi.samplebid.dummydata.DataGenerator
 import com.eskimi.samplebid.routes.BidRoutes
 import de.heikoseeberger.akkahttpjackson.JacksonSupport
 import org.slf4j.LoggerFactory
@@ -21,33 +23,6 @@ import scala.util.Random
 object EskimiBid extends JacksonSupport {
 
   val logger = LoggerFactory.getLogger(this.getClass)
-
-  def constantCampaigns(): Seq[Campaign] = {
-    Seq[Campaign](
-      Campaign(
-        id = 1,
-        country = "LT",
-        targeting =
-          Targeting(Seq("0006a522ce0f4bbbbaa6b3c38cafaa0f"), startHourOfDay = Some(8), endHourOfDay = Some(21)),
-        banners = List(
-          Banner(1, "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg", 300, 250),
-          Banner(2, "https://business.eskimi.com/wp-content/uploads/2020/07/openGraph.jpeg", 300, 250),
-        ),
-        bid = 4.50,
-      ),
-      Campaign(
-        id = 2,
-        country = "LT",
-        targeting = Targeting(Seq("0006a522ce0f4bbbbaa6b3c38cafaa0f"), endHourOfDay = Some(21)),
-        banners = List(
-          Banner(1, "https://home.eskimi.com/wp-content/uploads/2021/01/openGraph.jpeg", 250, 100),
-          Banner(2, "https://home.eskimi.com/wp-content/uploads/2021/01/openGraph.jpeg", 275, 110),
-        ),
-        bid = 5.15,
-      ),
-      Campaign(id = 3, country = "NG", targeting = Targeting(Seq.empty[String]), banners = Nil, bid = 2.15),
-    )
-  }
 
   def validateBid(bid: BidRequest)(implicit campaigns: Seq[Campaign]): Option[BidResponse] = {
     //TODO replace ListBuffer by immutable data structures
@@ -141,13 +116,17 @@ object EskimiBid extends JacksonSupport {
     implicit val system: ActorSystem[Nothing]               = ActorSystem(Behaviors.empty, "EskimiBid")
     implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
-    implicit val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
-    campaigns.zipWithIndex.foreach { case (cam, c) => logger.info(s"${c + 1}: $cam") }
-
     // Config of the API
     val config = AppConfig()
     val host   = config.api.host
     val port   = config.api.port
+
+    // Repositories and services
+    val campaignsRepo = new InMemoryCampaignsRepo()
+
+    // Dummy data
+    val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
+    campaigns.foreach(campaignsRepo.create)
 
     // Routes of the API
     val route      = new BidRoutes().route

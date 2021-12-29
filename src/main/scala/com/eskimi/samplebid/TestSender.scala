@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import com.eskimi.domain.BidRequest
+import com.eskimi.samplebid.dummydata.DataGenerator
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future

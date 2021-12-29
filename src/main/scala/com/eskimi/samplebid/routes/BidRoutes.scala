@@ -4,13 +4,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.eskimi.domain.{BidRequest, BidResponse, Campaign}
-import com.eskimi.samplebid.DataGenerator
 import com.eskimi.samplebid.EskimiBid.validateBid
+import com.eskimi.samplebid.dummydata.DataGenerator
 import de.heikoseeberger.akkahttpjackson.JacksonSupport
 import org.slf4j.LoggerFactory
 
 class BidRoutes extends JacksonSupport {
 
+  //TODO replace by service layer instance with already repo included
   private implicit val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
   private val logger                            = LoggerFactory.getLogger(this.getClass)
 
