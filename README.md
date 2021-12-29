@@ -84,6 +84,8 @@ Classes `Repository` and `InMemoryCampaignsRepo` in package `com.eskimi.reposito
 Service layer is located in package `com.eskimi.services`.
 Rejection handler has been moved to routes package and fixed.
 
+### (13) Minor refactors
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
