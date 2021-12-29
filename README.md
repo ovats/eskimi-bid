@@ -38,6 +38,17 @@ New class with routes is `BidRoutes.scala` in package `com.eskimi.samplebid.rout
 
 Replaced all `println` for `logger.info`.
 
+### (7) Remove magic numbers, added PureConfig for parameters in application.conf
+
+Adapter and port for server now are defined in `application.conf` file. Also can be defined using environment variables:
+
+- HTTP_INTERFACE
+- HTTP_PORT
+
+Also when testing the changes I had to add a new dependency for logging working correctly:
+
+`"ch.qos.logback"         % "logback-classic"`
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
