@@ -20,7 +20,6 @@ class BidsService(repo: Repository[Int, Campaign]) {
     val hourOfDay                                 = LocalDateTime.now().getHour
     val random                                    = new Random()
 
-    //campaigns
     repo
       .findAll()
       .withFilter(c =>
