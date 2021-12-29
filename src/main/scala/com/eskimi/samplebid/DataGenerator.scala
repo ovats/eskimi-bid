@@ -6,8 +6,10 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 object DataGenerator {
+
   private val country: Seq[String] = Seq("NG", "IN", "RU", "US", "UK", "SA", "GB", "IT", "BZ", "KY", "LT")
-  private val sites_domains: Seq[(String, String)] = Seq(
+
+  private val sitesDomains: Seq[(String, String)] = Seq(
     ("FZNd99HW7rcpNzb", "apple.com"),
     ("TXRIgMS4GivcwcC", "bbc.com"),
     ("WhL62qMWGRe7ZWI", "cnn.com"),
@@ -28,33 +30,34 @@ object DataGenerator {
   private def randomPrice(min: Double, max: Double) =
     math.rint(Random.between(min, max) * 100) / 100.0
 
-  private def randomImage() =
+  private def randomImage =
     s"https://business.eskimi.com/wp-content/uploads/${random.alphanumeric.take(15).mkString("")}.jpeg"
 
   private def randomIntWithSteps(min: Int, max: Int, step: Int) =
     min + (random.nextInt(((max - min) / step) + 1) * step)
 
-  private def targettingsiteids() = {
-    val _size                          = random.nextInt(sites_domains.size)
-    val targetids: ArrayBuffer[String] = ArrayBuffer()
+  private def targetingSiteIds = {
+    val _size = random.nextInt(sitesDomains.size)
+    //TODO: remove do-while and use immutable data structures
+    val targetIds: ArrayBuffer[String] = ArrayBuffer()
     do {
-      val siteid = sites_domains(random.nextInt(sites_domains.size))._1
-      if (!targetids.contains(siteid)) targetids += siteid
-    } while (_size > targetids.size)
-    targetids.toSeq
+      val siteId = sitesDomains(random.nextInt(sitesDomains.size))._1
+      if (!targetIds.contains(siteId)) targetIds += siteId
+    } while (_size > targetIds.size)
+    targetIds.toSeq
   }
 
-  def samplecampaigns(
+  def sampleCampaigns(
       n: Int,
-      fixedcountry: Option[String] = None,
-      minprice: Double,
-      maxprice: Double,
+      fixedCountry: Option[String] = None,
+      minPrice: Double,
+      maxPrice: Double,
       startHour: Option[Int] = None,
       endHour: Option[Int] = None,
   ): Seq[Campaign] =
     Seq.tabulate(n)(idx => {
-      val bidprice  = randomPrice(minprice, maxprice)
-      val targeting = targettingsiteids
+      val bidPrice  = randomPrice(minPrice, maxPrice)
+      val targeting = targetingSiteIds
       val banners = 0
         .to(random.nextInt(10))
         .map(idx2 => {
@@ -64,8 +67,8 @@ object DataGenerator {
           Banner(idx2 + 1, img, w, h)
         })
         .toList
-      val ctry = fixedcountry.getOrElse(country(random.nextInt(country.size)))
-      Campaign(idx + 1, ctry, Targeting(targeting, startHour, endHour), banners, bidprice)
+      val ctry = fixedCountry.getOrElse(country(random.nextInt(country.size)))
+      Campaign(idx + 1, ctry, Targeting(targeting, startHour, endHour), banners, bidPrice)
     })
 
   private def randomOption[A](a: A): Option[A] =
@@ -74,9 +77,9 @@ object DataGenerator {
       case _    => None
     }
 
-  def samplebid(nImpr: Int, fixedcountry: Option[String] = None, pricemin: Double, pricemax: Double): BidRequest = {
-    val _site = sites_domains(random.nextInt(sites_domains.size))
-    val udgeo: (Geo, Geo) = fixedcountry match {
+  def sampleBid(nImpr: Int, fixedCountry: Option[String] = None, priceMin: Double, priceMax: Double): BidRequest = {
+    val _site = sitesDomains(random.nextInt(sitesDomains.size))
+    val udgeo: (Geo, Geo) = fixedCountry match {
       case None =>
         val user_geo   = Geo(randomOption(country(random.nextInt(country.size))))
         val device_geo = Geo(randomOption(country(random.nextInt(country.size))))
@@ -87,14 +90,14 @@ object DataGenerator {
         (user_geo, device_geo)
     }
 
-    val user                = User(s"U${randomString(4)}-${randomString(6)}", randomOption(udgeo._1))
-    val device              = Device(s"D${randomString(6)}-${randomString(6)}", randomOption(udgeo._2))
-    val user_device_options = Seq((None, Some(device)), (Some(user), None), (Some(user), Some(device)))
-    val user_device         = user_device_options(random.nextInt(user_device_options.size))
+    val user              = User(s"U${randomString(4)}-${randomString(6)}", randomOption(udgeo._1))
+    val device            = Device(s"D${randomString(6)}-${randomString(6)}", randomOption(udgeo._2))
+    val userDeviceOptions = Seq((None, Some(device)), (Some(user), None), (Some(user), Some(device)))
+    val userDevice        = userDeviceOptions(random.nextInt(userDeviceOptions.size))
 
     val impressions: List[Impression] = Seq
       .tabulate(nImpr)(idx => {
-        val bid         = randomPrice(pricemin, pricemax)
+        val bid         = randomPrice(priceMin, priceMax)
         val w           = randomIntWithSteps(banner_min_w, banner_max_w, 25)
         val wstepfactor = wh_ranges(random.nextInt(wh_ranges.size))
         val min_max_w_opt = Seq(
@@ -128,12 +131,12 @@ object DataGenerator {
       s"${randomString(4)}-${randomString(4)}-${randomString(4)}",
       Some(impressions),
       Site(_site._1, _site._2),
-      user_device._1,
-      user_device._2,
+      userDevice._1,
+      userDevice._2,
     )
   }
 
-  def randomString(n: Int) =
+  private def randomString(n: Int) =
     new String((0 to n).map(_ => ('a' + random.nextInt(26)).toChar).toArray)
 
 }
