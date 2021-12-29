@@ -79,6 +79,10 @@ For example:
 
 Classes `Repository` and `InMemoryCampaignsRepo` in package `com.eskimi.repository`.
 
+### (12) Added service layer and fix rejection handler
+
+Service layer is located in package `com.eskimi.services`.
+Rejection handler has been moved to routes package and fixed.
 
 ## Original description
 

@@ -3,113 +3,20 @@ package com.eskimi.samplebid
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
 import com.eskimi.config.AppConfig
 import com.eskimi.domain._
 import com.eskimi.repository.InMemoryCampaignsRepo
 import com.eskimi.samplebid.dummydata.DataGenerator
 import com.eskimi.samplebid.routes.BidRoutes
-import de.heikoseeberger.akkahttpjackson.JacksonSupport
+import com.eskimi.services.BidsService
 import org.slf4j.LoggerFactory
 
-import java.time.LocalDateTime
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
-import scala.util.Random
 
-object EskimiBid extends JacksonSupport {
+object EskimiBid {
 
   val logger = LoggerFactory.getLogger(this.getClass)
-
-  def validateBid(bid: BidRequest)(implicit campaigns: Seq[Campaign]): Option[BidResponse] = {
-    //TODO replace ListBuffer by immutable data structures
-    val resolvedResponses: ListBuffer[BidResponse] = ListBuffer.empty
-
-    var withinBidImpr: Seq[Impression]            = Seq.empty
-    val consideredBidImpr: ListBuffer[Impression] = ListBuffer.empty
-    val hourOfDay                                 = LocalDateTime.now().getHour
-    val random                                    = new Random()
-
-    campaigns
-      .withFilter(c =>
-        bid.device.exists(_.geo.flatMap(_.country.map(_ == c.country)).getOrElse(true)) || bid.user.exists(
-            _.geo.flatMap(_.country.map(_ == c.country)).getOrElse(true)
-          )
-      )
-      .withFilter(_.targeting.targetedSiteIds.contains(bid.site.id))
-      .withFilter(c =>
-        c.targeting.startHourOfDay
-          .map(hourOfDay >= _)
-          .getOrElse(true) && c.targeting.endHourOfDay.map(hourOfDay <= _).getOrElse(true)
-      )
-      .withFilter(c =>
-        bid.imp match {
-          case None => false
-          case Some(lstimpr) =>
-            withinBidImpr = lstimpr.filter(_.bidFloor.exists(_ <= c.bid))
-            withinBidImpr.nonEmpty
-        }
-      )
-      .foreach { c =>
-        val resolved_banners = c.banners.filter(bnf =>
-          withinBidImpr.map { imp =>
-            val _exists =
-              (imp.w.exists(_ >= bnf.width) || (imp.wmax.exists(_ >= bnf.width) && imp.wmin.exists(_ <= bnf.width))) &&
-                (imp.h
-                  .exists(_ >= bnf.height) || (imp.hmax.exists(_ >= bnf.height) && imp.hmin.exists(_ <= bnf.height)))
-            if (_exists) consideredBidImpr += imp
-            _exists
-          }.nonEmpty
-        )
-
-        if (consideredBidImpr.nonEmpty) {
-          var _rand  = random.nextInt(resolved_banners.size)
-          val banner = resolved_banners(_rand)
-
-          _rand = random.nextInt(consideredBidImpr.size)
-          val impr = consideredBidImpr(_rand)
-          resolvedResponses += BidResponse(
-            1.toString,
-            bid.id,
-            impr.bidFloor.getOrElse(0.0d),
-            Some(s"${c.id}"),
-            Some(banner),
-          )
-        }
-
-        //clear temp
-        consideredBidImpr.clear
-        withinBidImpr = Seq.empty
-      }
-
-    if (resolvedResponses.nonEmpty) {
-      resolvedResponses.zipWithIndex.foreach { case (bid, c) => logger.info(s"$c: $bid") }
-      val _rand = random.nextInt(resolvedResponses.length)
-      Some(resolvedResponses(_rand))
-    } else {
-      None
-    }
-  }
-
-  implicit def myRejectionHandler: RejectionHandler =
-    RejectionHandler
-      .newBuilder()
-      .handleNotFound {
-        extractUnmatchedPath { p =>
-          complete(NotFound, s"The path you requested [$p] does not exist.")
-        }
-      }
-      .handle {
-        case MissingQueryParamRejection(param) =>
-          complete(BadRequest, s"Missing query Param error. $param")
-        case a @ _ =>
-          logger.info(s"some errors occurred here : $a")
-          complete(BadRequest, s"Other error. $a")
-      }
-      .result()
 
   def main(args: Array[String]): Unit = {
 
@@ -123,13 +30,14 @@ object EskimiBid extends JacksonSupport {
 
     // Repositories and services
     val campaignsRepo = new InMemoryCampaignsRepo()
+    val bidsService   = new BidsService(campaignsRepo)
 
     // Dummy data
     val campaigns: Seq[Campaign] = DataGenerator.sampleCampaigns(5, None, 3.0, 5.5, Some(6), None)
     campaigns.foreach(campaignsRepo.create)
 
     // Routes of the API
-    val route      = new BidRoutes().route
+    val route      = new BidRoutes(bidsService).route
     val httpserver = Http().newServerAt(host, port).bind(route)
 
     logger.info(s"Server now online. Please send request to http://$host:$port/api/bid\nPress RETURN to stop...")
