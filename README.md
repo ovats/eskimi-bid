@@ -14,7 +14,7 @@ After that new task will be available, for example:
 - scalafmt
 - scalafmtAll
 
-Also in order to be able to build the project I had to comment this line build.sbt:
+Also in order to be able to build the project I had to comment this line in `build.sbt`:
 
 `idePackagePrefix := Some("com.eskimi.samplebid")`
 
@@ -54,6 +54,18 @@ Also when testing the changes I had to add a new dependency for logging working 
 - methods not used outside classes should be private
 - public methods should declare return type
 - case class must be final
+
+### (9) Remove unused code
+
+Unused code in `TestSender.scala`:
+
+```scala
+private val constantBidrequest = HttpRequest(
+   method = HttpMethods.POST,
+   uri = "http://localhost:8088/api/bid",
+   entity = HttpEntity(ContentTypes.`application/json`, s"$constantsource"),
+)
+```
 
 ## Original description
 
