@@ -49,6 +49,12 @@ Also when testing the changes I had to add a new dependency for logging working 
 
 `"ch.qos.logback"         % "logback-classic"`
 
+### (8) Applying some good practices
+
+- methods not used outside classes should be private
+- public methods should declare return type
+- case class must be final
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.

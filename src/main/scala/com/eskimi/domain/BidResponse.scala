@@ -27,7 +27,13 @@ import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper
 @JsonIgnoreProperties(ignoreUnknown = true) case class Device(id: String, geo: Option[Geo])
 @JsonIgnoreProperties(ignoreUnknown = true) case class Geo(country: Option[String])
 
-case class BidResponse(id: String, bidRequestId: String, price: Double, adid: Option[String], banner: Option[Banner])
+final case class BidResponse(
+    id: String,
+    bidRequestId: String,
+    price: Double,
+    adid: Option[String],
+    banner: Option[Banner],
+)
 object BidRequest {
   val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)

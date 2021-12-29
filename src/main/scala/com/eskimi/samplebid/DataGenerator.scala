@@ -6,8 +6,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 object DataGenerator {
-  val country: Seq[String] = Seq("NG", "IN", "RU", "US", "UK", "SA", "GB", "IT", "BZ", "KY", "LT")
-  val sites_domains: Seq[(String, String)] = Seq(
+  private val country: Seq[String] = Seq("NG", "IN", "RU", "US", "UK", "SA", "GB", "IT", "BZ", "KY", "LT")
+  private val sites_domains: Seq[(String, String)] = Seq(
     ("FZNd99HW7rcpNzb", "apple.com"),
     ("TXRIgMS4GivcwcC", "bbc.com"),
     ("WhL62qMWGRe7ZWI", "cnn.com"),
@@ -19,13 +19,13 @@ object DataGenerator {
     ("JMb73LblxbfrPQ2", "vodafone.com"),
     ("p653UNliISPWlyu", "netflix.com"),
   )
-  val (banner_min_w: Int, banner_max_w: Int) = (350, 750)
-  val (banner_min_h: Int, banner_max_h: Int) = (150, 400)
-  val wh_ranges: Seq[Int]                    = Seq(0, 5, 10, 20, 25, 50, 100)
+  private val (banner_min_w: Int, banner_max_w: Int) = (350, 750)
+  private val (banner_min_h: Int, banner_max_h: Int) = (150, 400)
+  private val wh_ranges: Seq[Int]                    = Seq(0, 5, 10, 20, 25, 50, 100)
 
   val random = new Random()
 
-  def randomPrice(min: Double, max: Double) =
+  private def randomPrice(min: Double, max: Double) =
     math.rint(Random.between(min, max) * 100) / 100.0
 
   private def randomImage() =
@@ -34,7 +34,7 @@ object DataGenerator {
   private def randomIntWithSteps(min: Int, max: Int, step: Int) =
     min + (random.nextInt(((max - min) / step) + 1) * step)
 
-  def targettingsiteids() = {
+  private def targettingsiteids() = {
     val _size                          = random.nextInt(sites_domains.size)
     val targetids: ArrayBuffer[String] = ArrayBuffer()
     do {
@@ -68,7 +68,7 @@ object DataGenerator {
       Campaign(idx + 1, ctry, Targeting(targeting, startHour, endHour), banners, bidprice)
     })
 
-  def randomOption[A](a: A): Option[A] =
+  private def randomOption[A](a: A): Option[A] =
     random.nextBoolean() match {
       case true => Some(a)
       case _    => None
