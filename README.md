@@ -86,6 +86,13 @@ Rejection handler has been moved to routes package and fixed.
 
 ### (13) Minor refactors
 
+### (14) Add dependencies for unit tests 
+
+- scalatest
+- scalatest-flatspec
+- scalatest-shouldmatchers
+- akka-http-testkit
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
