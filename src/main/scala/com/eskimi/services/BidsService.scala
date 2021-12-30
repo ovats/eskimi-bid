@@ -1,14 +1,27 @@
 package com.eskimi.services
 
-import com.eskimi.domain.{BidRequest, BidResponse, Campaign, Impression}
+import com.eskimi.domain.{BidRequest, BidResponse, Campaign, Device, Impression, User}
 import com.eskimi.repository.Repository
-import com.eskimi.samplebid.EskimiBid.logger
+import org.slf4j.LoggerFactory
 
+//TODO remove if not needed
 import java.time.LocalDateTime
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 class BidsService(repo: Repository[Int, Campaign]) {
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
+  private def matchCountry(country: String, device: Option[Device], user: Option[User]): Boolean = {
+    val val1: Boolean = device.exists(_.geo.flatMap(_.country.map(_ == country)).getOrElse(false))
+    val val2: Boolean = user.exists(_.geo.flatMap(_.country.map(_ == country)).getOrElse(false))
+    val1 || val2
+  }
+
+  private def matchSite(siteList: Seq[String], siteId: String): Boolean = {
+    siteList.contains(siteId)
+  }
 
   def validateBid(bid: BidRequest): Option[BidResponse] = {
 
@@ -17,22 +30,20 @@ class BidsService(repo: Repository[Int, Campaign]) {
 
     var withinBidImpr: Seq[Impression]            = Seq.empty
     val consideredBidImpr: ListBuffer[Impression] = ListBuffer.empty
-    val hourOfDay                                 = LocalDateTime.now().getHour
-    val random                                    = new Random()
+    //TODO remove if not needed
+//    val hourOfDay                                 = LocalDateTime.now().getHour
+    val random = new Random()
 
     repo
       .findAll()
-      .withFilter(c =>
-        bid.device.exists(_.geo.flatMap(_.country.map(_ == c.country)).getOrElse(true)) || bid.user.exists(
-            _.geo.flatMap(_.country.map(_ == c.country)).getOrElse(true)
-          )
-      )
-      .withFilter(_.targeting.targetedSiteIds.contains(bid.site.id))
-      .withFilter(c =>
-        c.targeting.startHourOfDay
-          .map(hourOfDay >= _)
-          .getOrElse(true) && c.targeting.endHourOfDay.map(hourOfDay <= _).getOrElse(true)
-      )
+      .withFilter(c => matchCountry(c.country, bid.device, bid.user))
+      .withFilter(c => matchSite(c.targeting.targetedSiteIds, bid.site.id))
+      //TODO remove if not needed
+//      .withFilter(c =>
+//        c.targeting.startHourOfDay
+//          .map(hourOfDay >= _)
+//          .getOrElse(true) && c.targeting.endHourOfDay.map(hourOfDay <= _).getOrElse(true)
+//      )
       .withFilter(c =>
         bid.imp match {
           case None => false
@@ -60,10 +71,10 @@ class BidsService(repo: Repository[Int, Campaign]) {
           _rand = random.nextInt(consideredBidImpr.size)
           val impr = consideredBidImpr(_rand)
           resolvedResponses += BidResponse(
-            1.toString,
+            "1",
             bid.id,
             impr.bidFloor.getOrElse(0.0d),
-            Some(s"${c.id}"),
+            Some(c.id.toString),
             Some(banner),
           )
         }

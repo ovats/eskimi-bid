@@ -1,4 +1,4 @@
-package com.eskimi.samplebid.routes
+package com.eskimi.api.routes
 
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, NotFound}
 import akka.http.scaladsl.server.Directives.{complete, extractUnmatchedPath}

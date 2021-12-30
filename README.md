@@ -93,6 +93,12 @@ Rejection handler has been moved to routes package and fixed.
 - scalatest-shouldmatchers
 - akka-http-testkit
 
+### (15) First unit tests
+
+Added some unit tests for `BidRoutes` class.
+Some unit tests fail, it must be fixed. These are marked as `ignored`.
+More unit tests are required.
+
 ## Original description
 
 To start the server, simply run the EskimiBid main scala class.
