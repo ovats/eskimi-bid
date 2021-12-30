@@ -1,4 +1,4 @@
-package com.eskimi.samplebid.dummydata
+package com.eskimi.dummydata
 
 import com.eskimi.domain._
 

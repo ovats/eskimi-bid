@@ -1,4 +1,4 @@
-package com.eskimi.samplebid
+package com.eskimi.api
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
@@ -6,8 +6,8 @@ import akka.http.scaladsl.Http
 import com.eskimi.config.AppConfig
 import com.eskimi.domain._
 import com.eskimi.repository.InMemoryCampaignsRepo
-import com.eskimi.samplebid.dummydata.DataGenerator
-import com.eskimi.samplebid.routes.BidRoutes
+import com.eskimi.dummydata.DataGenerator
+import com.eskimi.api.routes.BidRoutes
 import com.eskimi.services.BidsService
 import org.slf4j.LoggerFactory
 
@@ -16,7 +16,7 @@ import scala.io.StdIn
 
 object EskimiBid {
 
-  val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
 
